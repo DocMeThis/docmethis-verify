@@ -1,0 +1,107 @@
+[project]
+name = "docmethis-verify"
+version = "0.1.0"
+description = "Deterministic Python docstring verification for DocMeThis."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "LicenseRef-DocMeThis-Source-Access"
+license-files = ["LICENSE"]
+dependencies = [
+    "docmethis-extract-python==0.1.0",
+    "pydantic>=2.11.0,<3.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "coverage[toml]>=7.0",
+    "pre-commit>=4.5.1",
+    "pytest>=9.0.3",
+    "pytest-cov>=5.0",
+    "ruff>=0.14.14",
+]
+
+[tool.uv]
+required-version = ">=0.12.5"
+
+[[tool.uv.index]]
+name = "docmethis"
+url = "https://pkg.docmethis.com"
+explicit = true
+
+[tool.uv.sources]
+docmethis-extract-python = { index = "docmethis" }
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["docmethis_verify*"]
+
+[tool.ruff]
+line-length = 130
+target-version = "py312"
+exclude = [".venv", ".pytest_cache", ".ruff_cache", "build", "dist"]
+
+[tool.ruff.format]
+exclude = ["**/*.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers --strict-config"
+norecursedirs = ["tests/mock/**"]
+markers = ["contract: public package boundary and invariant checks"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["D203", "D213", "D401", "COM812"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "S108", "S603", "S607", "PLR2004", "PLR0913", "ANN201", "FBT001", "SLF001", "D102", "D103", "ANN003"]
+"scripts/*" = ["INP001", "T201", "S603", "S607"]
+
+[tool.contract-guard]
+# Keep this list aligned with the public Verify contracts and their contract tests.
+# Patterns are exact paths or directory prefixes, not globs.
+patterns = [
+    "src/docmethis_verify/__init__.py",
+    "src/docmethis_verify/validation.py",
+    "src/docmethis_verify/dmt.py",
+    "src/docmethis_verify/models/",
+    "src/docmethis_verify/docstring/",
+    "src/docmethis_verify/verification/",
+    "tests/test_public_contract.py",
+    "tests/models/test_contracts.py",
+    "tests/shared/test_dmt_presence_exports.py",
+    "tests/shared/test_dmt_registre.py",
+    "tests/shared/test_numpy_sections.py",
+    "tests/shared/test_section_parser.py",
+    "tests/verification/test_format_validator.py",
+    "tests/verification/test_format_warning_spans.py",
+    "tests/verification/test_raises_verification.py",
+    "tests/verification/test_structural.py",
+    "tests/verification/test_types_verification.py",
+    "tests/verification/test_vocabulary_verification.py",
+]
+
+[tool.docmethis.check]
+check_mode = "catchup"
+fail_on_warning = true
+include_visibility = ["public", "protected", "private"]
+symbol_kinds = ["function", "method", "class", "module"]
+dia = true
+profile = "strict"
+
+[tool.docmethis.fix]
+docstring-quote-style = "double"
+profile = "openrouter"
+model = "cohere/north-mini-code:free"
+api-config-file = ".github/docmethis-fix/llm_api.toml"
+policy-config-file = ".github/docmethis-fix/llm_policies.toml"
+docstring-language = "en"
+max-concurrency = 5
+include-existing-docstrings = true
+allow-full-rewrite-fallback = false
+allowed-dia-statuses = ["confirmed"]
+scope = "impacted"
