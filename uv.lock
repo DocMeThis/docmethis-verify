@@ -139,14 +139,14 @@ wheels = [
 
 [[package]]
 name = "docmethis-extract-python"
-version = "0.1.0"
+version = "0.1.1"
 source = { registry = "https://pkg.docmethis.com/" }
 dependencies = [
     { name = "typeshed-client" },
 ]
-sdist = { url = "https://pkg.docmethis.com/docmethis-extract-python/docmethis_extract_python-0.1.0.tar.gz" }
+sdist = { url = "https://pkg.docmethis.com/docmethis-extract-python/docmethis_extract_python-0.1.1.tar.gz" }
 wheels = [
-    { url = "https://pkg.docmethis.com/docmethis-extract-python/docmethis_extract_python-0.1.0-py3-none-any.whl" },
+    { url = "https://pkg.docmethis.com/docmethis-extract-python/docmethis_extract_python-0.1.1-py3-none-any.whl" },
 ]
 
 [[package]]
@@ -169,7 +169,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "docmethis-extract-python", specifier = "==0.1.0", index = "https://pkg.docmethis.com/" },
+    { name = "docmethis-extract-python", specifier = "==0.1.1", index = "https://pkg.docmethis.com/" },
     { name = "pydantic", specifier = ">=2.11.0,<3.0.0" },
 ]
 
