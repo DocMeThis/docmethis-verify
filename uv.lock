@@ -151,7 +151,7 @@ wheels = [
 
 [[package]]
 name = "docmethis-verify"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "docmethis-extract-python" },
@@ -169,7 +169,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "docmethis-extract-python", specifier = "==0.1.1", index = "https://pkg.docmethis.com/" },
+    { name = "docmethis-extract-python", specifier = ">=0.1.1", index = "https://pkg.docmethis.com/" },
     { name = "pydantic", specifier = ">=2.11.0,<3.0.0" },
 ]
 
