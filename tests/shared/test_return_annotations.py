@@ -16,7 +16,25 @@ if TYPE_CHECKING:
 
 
 def _module(tmp_path: Path, source: str) -> ModuleRecord:
-    """Extract a module to provide authentic import and local-class facts."""
+    """Extract a module to provide authentic import and local-class facts.
+
+    Parameters
+    ----------
+    tmp_path : Path
+        Writes the given source text to a file named module.py inside the provided temporary directory path, then extracts a
+        module record from that file with the module name "module", is_stub and is_test both false, and file_hash "test"; asserts
+        the record is not None and returns it.
+    source : str
+        Accepts a required positional-or-keyword parameter named source annotated as str. Writes the source text to a file named
+        module.py under tmp_path, extracts a module record from that file, asserts the record is not None, and returns the
+        resulting ModuleRecord.
+
+    Returns
+    -------
+    ModuleRecord
+        Returns the ModuleRecord produced by extracting the written module file. The extraction result is asserted to be non-None
+        before being returned.
+    """
     path = tmp_path / "module.py"
     path.write_text(source, encoding="utf-8")
     record = extract_module_record(path, "module", is_stub=False, is_test=False, file_hash="test")
@@ -46,7 +64,17 @@ def test_classify_return_annotation_without_import_context(
     annotation: str | None,
     expected: ReturnAnnotationKind,
 ) -> None:
-    """Unresolved names stay unknown, while built-in and literal facts classify directly."""
+    """Unresolved names stay unknown, while built-in and literal facts classify directly.
+
+    Parameters
+    ----------
+    annotation : str | None
+        Accepts a positional-or-keyword parameter named annotation, annotated as str | None, with no default value. The function
+        passes it to classify_return_annotation and asserts that the result is the expected value.
+    expected : ReturnAnnotationKind
+        Passed as the second argument to classify_return_annotation and compared against its return value with an identity
+        assertion.
+    """
     assert classify_return_annotation(annotation) is expected
 
 
@@ -108,18 +136,50 @@ def test_classify_return_annotation_resolves_supported_typing_imports(
     expected: ReturnAnnotationKind,
     tmp_path: Path,
 ) -> None:
-    """Only imports from typing modules establish Never/NoReturn and nullable aliases."""
+    """Only imports from typing modules establish Never/NoReturn and nullable aliases.
+
+    Parameters
+    ----------
+    annotation : str
+        Accepts a string value for the annotation parameter and uses it as the annotation argument passed to
+        classify_return_annotation.
+    source : str
+        A required string argument named source, passed positionally or by keyword. The test writes it as the content of a
+        temporary module (via _module) so that classify_return_annotation can resolve typing imports from that module's source.
+    expected : ReturnAnnotationKind
+        The expected value is a ReturnAnnotationKind supplied by the test and compared against the identical value returned by
+        classify_return_annotation, using the test's temporary module built from the source. No default is provided.
+    tmp_path : Path
+        Passed as a positional-or-keyword argument annotated as Path, with no default. Its value is used to build a module via
+        _module together with source, and that module is passed to classify_return_annotation.
+    """
     assert classify_return_annotation(annotation, module=_module(tmp_path, source)) is expected
 
 
 def test_classify_return_annotation_uses_local_type_declarations(tmp_path: Path) -> None:
-    """A locally declared return class is a known value type."""
+    """A locally declared return class is a known value type.
+
+    Parameters
+    ----------
+    tmp_path : Path
+        Accepts a pathlib.Path argument named tmp_path with no default. Passes it to the project helper _module to construct a
+        module from source declaring a local DiffRange class, then asserts that classify_return_annotation with that module
+        returns ReturnAnnotationKind.VALUE.
+    """
     module = _module(tmp_path, "class DiffRange:\n    pass\n")
     assert classify_return_annotation("DiffRange", module=module) is ReturnAnnotationKind.VALUE
 
 
 def test_classify_return_annotation_handles_aliased_and_combined_no_return_types(tmp_path: Path) -> None:
-    """An imported Never alias stays no-return, while a union with a value is a value type."""
+    """An imported Never alias stays no-return, while a union with a value is a value type.
+
+    Parameters
+    ----------
+    tmp_path : Path
+        Receives a filesystem path used as the location for a test module created from source text defining an alias for
+        typing.Never. The test then checks that classifying the alias name yields a no-return kind, that classifying its union
+        with int yields a value kind, and that classifying its union with None yields a none kind.
+    """
     module = _module(tmp_path, "from typing import Never as Bottom\n")
     assert classify_return_annotation("Bottom", module=module) is ReturnAnnotationKind.NO_RETURN
     assert classify_return_annotation("Bottom | int", module=module) is ReturnAnnotationKind.VALUE
@@ -140,6 +200,23 @@ def test_module_and_member_import_collisions_remain_unknown(
     reverse: bool,
     tmp_path: Path,
 ) -> None:
-    """Module and member aliases share a namespace, regardless of import order."""
+    """Module and member aliases share a namespace, regardless of import order.
+
+    Parameters
+    ----------
+    annotation : str
+        Accepts a string annotation that is passed directly to classify_return_annotation and asserted to classify as
+        ReturnAnnotationKind.UNKNOWN.
+    imports : tuple[str, str]
+        A required positional-or-keyword parameter annotated as a tuple of two strings. It supplies two import statements whose
+        order is reversed before being joined into module source when reverse is true, otherwise used as given.
+    reverse : bool
+        When reverse is true, the two import statements are joined in reversed order to build the source; otherwise they are
+        joined in their given order. The test then asserts that classify_return_annotation returns ReturnAnnotationKind.UNKNOWN
+        for the annotation and the module created from that source.
+    tmp_path : Path
+        tmp_path is a required positional or keyword argument annotated as Path. It is passed to the _module helper to supply the
+        module used by the test.
+    """
     source = "\n".join(reversed(imports) if reverse else imports) + "\n"
     assert classify_return_annotation(annotation, module=_module(tmp_path, source)) is ReturnAnnotationKind.UNKNOWN
