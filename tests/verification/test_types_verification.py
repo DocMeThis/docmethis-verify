@@ -297,7 +297,16 @@ class TestTypeGranularitiesPreserved:
     ],
 )
 def test_dmt3010_applicability_uses_the_normal_return_fact(status: NormalReturnStatus, expected: bool) -> None:
-    """Verify itself suppresses the type request only for a proven absence."""
+    """Verify itself suppresses the type request only for a proven absence.
+
+    Parameters
+    ----------
+    status : NormalReturnStatus
+        The status parameter is a NormalReturnStatus assigned to a function record's normal_return_status before verification is
+        run; the expected boolean parameter indicates whether DMT-3010 type-return errors should be reported for that status.
+    expected : bool
+        A parameter named expected that is annotated as bool and has no default value.
+    """
     function = _function_record({}, return_type=_type_info("int", Confidence.EXPLICIT))
     function.normal_return_status = status
     request = VerificationRequest(function_record=function, generated_docstring=_generated_docstring_with_returns(None))
@@ -326,7 +335,27 @@ def test_dmt3010_resolves_no_value_annotations_without_guessing_aliases(
     include_module: bool,
     expected: bool,
 ) -> None:
-    """Import context controls resolution, not a consumer-specific diagnostic filter."""
+    """Import context controls resolution, not a consumer-specific diagnostic filter.
+
+    Parameters
+    ----------
+    tmp_path : Path
+        The tmp_path parameter is a Path used as the base directory in which the test writes a temporary module.py file containing
+        a function annotated with the provided annotation string.
+    imports : str
+        A string parameter named imports, passed positionally or by keyword, whose text is written as the first line of a
+        generated module file before a function definition. Its value controls import context when the module record is extracted
+        and the return annotation is resolved.
+    annotation : str
+        Accepts a string annotation value used as the return type in a generated module named module.py.
+    include_module : bool
+        A boolean parameter that, when true, supplies the module record to the verification request; when false, the module record
+        is None.
+    expected : bool
+        Passed as the expected boolean result of the verification. The test asserts that the boolean value of
+        verify_type_return_missing(request) equals expected, and that whether DMT-3010 appears among verify(request).errors equals
+        expected.
+    """
     path = tmp_path / "module.py"
     path.write_text(f"{imports}\n\ndef f() -> {annotation}:\n    pass\n", encoding="utf-8")
     module = extract_module_record(path, "module", is_stub=False, is_test=False, file_hash="test")
