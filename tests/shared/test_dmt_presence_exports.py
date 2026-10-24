@@ -11,4 +11,5 @@ def test_presence_codes_are_public_exports() -> None:
     assert dmt.DMT_1301 == "DMT-1301"
     assert dmt.DMT_1250 == "DMT-1250"
     assert dmt.DMT_4301 == "DMT-4301"
-    assert {"DMT_1201", "DMT_1301", "DMT_1250", "DMT_4301"} <= set(dmt.__all__)
+    assert dmt.DMT_3013 == "DMT-3013"
+    assert {"DMT_1201", "DMT_1301", "DMT_1250", "DMT_3013", "DMT_4301"} <= set(dmt.__all__)

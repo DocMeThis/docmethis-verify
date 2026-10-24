@@ -2,11 +2,12 @@
 
 """Type verifiers for deterministic verification."""
 
-from docmethis_extract_python.api import Confidence, FunctionRecord
+from docmethis_extract_python.api import Confidence, FunctionRecord, NormalReturnStatus
 
 from docmethis_verify.dmt import DMT_2120, DMT_3010
 from docmethis_verify.models.contracts import VerificationError, VerificationRequest
 from docmethis_verify.models.enums import PatchGranularity, VerificationErrorType
+from docmethis_verify.return_annotations import ReturnAnnotationKind, classify_return_annotation
 
 __all__ = ["verify_type_return_missing", "verify_types_parameters_missing"]
 
@@ -68,25 +69,34 @@ def verify_type_return_missing(request: VerificationRequest) -> list[Verificatio
     -------
     list[VerificationError]
         Returns a list of VerificationError objects. The list is empty when the generated docstring has no Returns section, when
-        the function record is not a FunctionRecord or has no type information, when the recorded return type is absent or not
-        explicitly confident, or when the generated docstring already documents a return annotation. Otherwise, returns a single
-        VerificationError indicating that the explicit return type is missing from the Returns section.
+        the function record is not a FunctionRecord or has no type information, when no normal return is possible, when the
+        annotation resolves to None/Never/NoReturn, when the recorded return type is absent or not explicitly confident, or when
+        the generated docstring already documents a return annotation. Unresolved annotations retain the existing type check.
 
     """
     if request.generated_docstring.returns is None:
         return []
 
-    if not isinstance(request.function_record, FunctionRecord) or request.function_record.types is None:
+    if (
+        not isinstance(request.function_record, FunctionRecord)
+        or request.function_record.types is None
+        or request.function_record.normal_return_status is NormalReturnStatus.PROVEN_ABSENT
+    ):
         return []
 
     return_type = request.function_record.types.return_type
     if return_type is None:
         return []
 
-    if return_type.confidence is not Confidence.EXPLICIT:
+    if return_type.confidence is not Confidence.EXPLICIT or request.generated_docstring.returns.annotation is not None:
         return []
 
-    if request.generated_docstring.returns.annotation is not None:
+    signature = request.function_record.signature
+    annotation = signature.return_annotation if signature is not None else return_type.raw or return_type.type_str
+    if classify_return_annotation(annotation, module=request.module_record) in {
+        ReturnAnnotationKind.NONE,
+        ReturnAnnotationKind.NO_RETURN,
+    }:
         return []
 
     return [
