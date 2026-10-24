@@ -7,7 +7,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-from docmethis_extract_python.static_extraction.models import ClassRecord, FunctionRecord
+from docmethis_extract_python.static_extraction.models import ClassRecord, FunctionRecord, ModuleRecord
 
 import docmethis_verify
 from docmethis_verify.docstring.models import GeneratedDocstring
@@ -32,11 +32,13 @@ EXPECTED_ROOT_EXPORTS = {
     "PatchGranularity",
     "VerificationError",
     "VerificationErrorType",
+    "ReturnAnnotationKind",
+    "classify_return_annotation",
 }
 
 
 def test_root_exports_are_frozen() -> None:
-    """The candidate exposes only the seven Verify root exports."""
+    """The candidate exposes only the documented Verify root exports."""
     assert set(docmethis_verify.__all__) == EXPECTED_ROOT_EXPORTS
     assert all(hasattr(docmethis_verify, name) for name in EXPECTED_ROOT_EXPORTS)
 
@@ -61,11 +63,25 @@ def test_supported_verifiers_are_available() -> None:
     )
 
 
+def test_return_annotation_classifier_is_available() -> None:
+    """The shared return annotation classifier is available to downstream tools."""
+    assert docmethis_verify.classify_return_annotation("typing.NoReturn") is docmethis_verify.ReturnAnnotationKind.UNKNOWN
+
+
 def test_extract_models_are_used_by_request_contract() -> None:
     """Verify requests use the installed Extract model classes, not copies."""
     assert FunctionRecord.__module__.startswith("docmethis_extract_python.")
     assert ClassRecord.__module__.startswith("docmethis_extract_python.")
     assert VerificationRequest.__annotations__["generated_docstring"] is GeneratedDocstring
+
+
+def test_request_accepts_optional_extract_module_context() -> None:
+    """Callers can supply M1 import facts without changing existing request construction."""
+    module = ModuleRecord(file_path=PACKAGE_ROOT / "example.py", module_name="example")
+    generated = GeneratedDocstring(summary="Example.")
+    assert VerificationRequest(function_record=module, generated_docstring=generated).module_record is None
+    request = VerificationRequest(function_record=module, generated_docstring=generated, module_record=module)
+    assert request.module_record is module
 
 
 def test_source_has_no_private_or_historical_imports() -> None:

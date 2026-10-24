@@ -7,7 +7,7 @@ requires-python = ">=3.12"
 license = "LicenseRef-DocMeThis-Source-Access"
 license-files = ["LICENSE"]
 dependencies = [
-    "docmethis-extract-python==0.1.0",
+    "docmethis-extract-python==0.1.1",
     "pydantic>=2.11.0,<3.0.0",
 ]
 
@@ -55,7 +55,11 @@ markers = ["contract: public package boundary and invariant checks"]
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["D203", "D213", "D401", "COM812"]
+ignore = ["D401", "COM812"]
+# D401: multilingual prose; COM812: handled by ruff format.
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101", "S108", "S603", "S607", "PLR2004", "PLR0913", "ANN201", "FBT001", "SLF001", "D102", "D103", "ANN003"]
@@ -68,10 +72,12 @@ patterns = [
     "src/docmethis_verify/__init__.py",
     "src/docmethis_verify/validation.py",
     "src/docmethis_verify/dmt.py",
+    "src/docmethis_verify/return_annotations.py",
     "src/docmethis_verify/models/",
     "src/docmethis_verify/docstring/",
     "src/docmethis_verify/verification/",
     "tests/test_public_contract.py",
+    "tests/shared/test_return_annotations.py",
     "tests/models/test_contracts.py",
     "tests/shared/test_dmt_presence_exports.py",
     "tests/shared/test_dmt_registre.py",
@@ -86,22 +92,24 @@ patterns = [
 ]
 
 [tool.docmethis.check]
-check_mode = "catchup"
-fail_on_warning = true
-include_visibility = ["public", "protected", "private"]
-symbol_kinds = ["function", "method", "class", "module"]
+check-mode = "regression"
+fail-on-warning = true
+include-visibility = ["public", "protected", "private"]
+symbol-kinds = ["function", "method", "class", "module"]
 dia = true
+# Temporary workaround for DIA's classification of test assertions as API contracts.
+dia-exclude-paths = ["tests/"]
 profile = "strict"
 
 [tool.docmethis.fix]
-docstring-quote-style = "double"
-profile = "openrouter"
-model = "cohere/north-mini-code:free"
-api-config-file = ".github/docmethis-fix/llm_api.toml"
-policy-config-file = ".github/docmethis-fix/llm_policies.toml"
-docstring-language = "en"
-max-concurrency = 5
-include-existing-docstrings = true
 allow-full-rewrite-fallback = false
 allowed-dia-statuses = ["confirmed"]
+api-config-file = ".github/docmethis-fix/llm_api.toml"
+docstring-language = "en"
+docstring-quote-style = "double"
+include-existing-docstrings = true
+max-concurrency = 5
+model = "deepseek-v4.1-flash"
+policy-config-file = ".github/docmethis-fix/llm_policies.toml"
+profile = "opencode"
 scope = "impacted"

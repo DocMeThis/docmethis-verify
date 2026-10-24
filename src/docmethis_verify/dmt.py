@@ -60,6 +60,7 @@ __all__ = [
     "DMT_2120",
     "DMT_3001",
     "DMT_3010",
+    "DMT_3013",
     "DMT_4001",
     "DMT_4002",
     "DMT_4101",
@@ -199,6 +200,7 @@ DMT_4002 = "DMT-4002"
 DMT_4301 = "DMT-4301"
 DMT_2120 = "DMT-2120"
 DMT_3010 = "DMT-3010"
+DMT_3013 = "DMT-3013"
 DMT_6201 = "DMT-6201"
 DMT_6049 = "DMT-6049"
 DMT_6202 = "DMT-6202"
@@ -747,6 +749,17 @@ REGISTRY: tuple[CodeDMT, ...] = (
         confidence="medium",
         default_enabled=False,
         status="reserved",
+    ),
+    CodeDMT(
+        DMT_3013,
+        "Return annotation permits a value, but no normal return path is detected.",
+        family=3,
+        severity="warning",
+        confidence="high",
+        default_enabled=True,
+        status="emitted",
+        emitter=frozenset({"check"}),
+        fixable=False,
     ),
     CodeDMT(
         DMT_6201,

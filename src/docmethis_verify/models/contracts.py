@@ -145,12 +145,15 @@ class VerificationRequest:
         Extracted facts about the documented symbol.
     forbidden_terms : StrictTupleOfNonEmptyStr
         Terms forbidden in the docstring.
+    module_record : ModuleRecord | None
+        Enclosing module facts used to resolve return annotation imports. Unresolved names remain unknown when omitted.
 
     """
 
     generated_docstring: GeneratedDocstring
     function_record: FunctionRecord | ClassRecord | ModuleRecord
     forbidden_terms: StrictTupleOfNonEmptyStr = ()
+    module_record: ModuleRecord | None = None
 
 
 @dataclass(kw_only=True, slots=True, frozen=True, config=_CONFIG_DICT)

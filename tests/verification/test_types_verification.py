@@ -4,6 +4,8 @@
 
 from pathlib import Path
 
+import pytest
+from docmethis_extract_python.api import NormalReturnStatus, extract_module_record
 from docmethis_extract_python.static_extraction.models import (
     Confidence,
     FunctionRecord,
@@ -284,3 +286,55 @@ class TestTypeGranularitiesPreserved:
             (VerificationErrorType.PARAMETER_TYPE_MISSING, PatchGranularity.SPAN, "DMT-2120"),
             (VerificationErrorType.RETURNS_TYPE_MISSING, PatchGranularity.SPAN, "DMT-3010"),
         ]
+
+
+@pytest.mark.parametrize(
+    ("status", "expected"),
+    [
+        (NormalReturnStatus.PROVEN_ABSENT, False),
+        (NormalReturnStatus.POSSIBLE, True),
+        (NormalReturnStatus.UNKNOWN, True),
+    ],
+)
+def test_dmt3010_applicability_uses_the_normal_return_fact(status: NormalReturnStatus, expected: bool) -> None:
+    """Verify itself suppresses the type request only for a proven absence."""
+    function = _function_record({}, return_type=_type_info("int", Confidence.EXPLICIT))
+    function.normal_return_status = status
+    request = VerificationRequest(function_record=function, generated_docstring=_generated_docstring_with_returns(None))
+    assert bool(verify_type_return_missing(request)) is expected
+    assert ("DMT-3010" in {error.dmt_code for error in verify(request).errors}) is expected
+
+
+@pytest.mark.parametrize(
+    ("imports", "annotation", "include_module", "expected"),
+    [
+        ("", "None", False, False),
+        ("from types import NoneType as Nil", "Nil", True, False),
+        ("from typing import NoReturn as Exit", "Exit", True, False),
+        ("import typing_extensions as te", "te.Never", True, False),
+        ("from typing import NoReturn as Exit", "Exit", False, True),
+        ("from application import NoReturn as Exit", "Exit", True, True),
+        ("from typing import NoReturn as Exit\nfrom application import Exit", "Exit", True, True),
+        ("", "int | None", True, True),
+    ],
+    ids=["none", "none-alias", "no-return-alias", "qualified-never", "missing-context", "unknown-alias", "conflict", "nullable"],
+)
+def test_dmt3010_resolves_no_value_annotations_without_guessing_aliases(
+    tmp_path: Path,
+    imports: str,
+    annotation: str,
+    include_module: bool,
+    expected: bool,
+) -> None:
+    """Import context controls resolution, not a consumer-specific diagnostic filter."""
+    path = tmp_path / "module.py"
+    path.write_text(f"{imports}\n\ndef f() -> {annotation}:\n    pass\n", encoding="utf-8")
+    module = extract_module_record(path, "module", is_stub=False, is_test=False, file_hash="test")
+    assert module is not None
+    request = VerificationRequest(
+        function_record=module.functions[0],
+        generated_docstring=_generated_docstring_with_returns(None),
+        module_record=module if include_module else None,
+    )
+    assert bool(verify_type_return_missing(request)) is expected
+    assert ("DMT-3010" in {error.dmt_code for error in verify(request).errors}) is expected

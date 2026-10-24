@@ -72,6 +72,17 @@ def test_class_aggregate_exception_code_is_check_only_and_not_fixable() -> None:
     assert entry.fixable is False
 
 
+def test_normal_return_path_code_is_check_only_and_advisory() -> None:
+    """DMT-3013 reports a proven no-normal-return path without claiming invalid typing."""
+    entry = find_code("DMT-3013")
+
+    assert entry.status == "emitted"
+    assert entry.emitter == frozenset({"check"})
+    assert entry.confidence == "high"
+    assert entry.severity == "warning"
+    assert entry.fixable is False
+
+
 def test_999_is_never_emitted() -> None:
     """DMT-CORE-999 is a configuration pseudo-code that can never be emitted."""
     entry = find_code("DMT-CORE-999")

@@ -11,13 +11,16 @@ from docmethis_verify.models import (
     VerificationRequest,
     VerificationResponse,
 )
+from docmethis_verify.return_annotations import ReturnAnnotationKind, classify_return_annotation
 
 __all__ = [
     "FormatWarning",
     "FormatWarningSpan",
     "PatchGranularity",
+    "ReturnAnnotationKind",
     "VerificationError",
     "VerificationErrorType",
     "VerificationRequest",
     "VerificationResponse",
+    "classify_return_annotation",
 ]

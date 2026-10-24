@@ -133,13 +133,14 @@ syntax:
 
 ## Diagnostic Codes and TDV
 
-Verify emits native `DMT-XXXX` codes. Their canonical semantic definitions are
+Verify maintains the canonical `DMT-XXXX` registry used by Verify, Check and Fix.
+The codes' canonical semantic definitions are
 published in the [Taxonomy of Documentation Violations (TDV)](https://github.com/DocMeThis/tdv-registry),
 a language-scoped taxonomy independent of any detector or fixer.
 
 For the current Python adapter, the main mappings are:
 
-| Verify code | TDV code | Meaning |
+| DMT code | TDV code | Meaning |
 | --- | --- | --- |
 | `DMT-2001` | `TDV-PY-2001` | Documented callable parameter is missing |
 | `DMT-2002` | `TDV-PY-2002` | Documentation contains an extra parameter |
@@ -147,6 +148,7 @@ For the current Python adapter, the main mappings are:
 | `DMT-2120` | `TDV-PY-2120` | Parameter type is missing |
 | `DMT-3001` | `TDV-PY-3001` | Return value documentation is missing |
 | `DMT-3010` | `TDV-PY-3010` | Return type is missing |
+| `DMT-3013` | `TDV-PY-3013` | Value-return annotation with a proven absence of normal return |
 | `DMT-4001` | `TDV-PY-4001` | Observed exception is missing from `Raises` |
 | `DMT-4002` | `TDV-PY-4002` | Documented exception is not observed |
 | `DMT-7200` | `TDV-PY-7200` | Forbidden or boilerplate vocabulary |
@@ -173,6 +175,7 @@ has a canonical TDV-PY mapping described in the next section.
 - Missing parameter types (`DMT-2120`).
 - Missing Returns sections (`DMT-3001`).
 - Missing return types (`DMT-3010`).
+- Return-annotation classification supporting the normal-return contract diagnostic (`DMT-3013`).
 - Exceptions absent from `Raises` (`DMT-4001`).
 - Documented exceptions not observed by the facts adapter (`DMT-4002`).
 - Forbidden vocabulary in supported sections (`DMT-7200`).
@@ -211,6 +214,12 @@ The current Python package exposes these stable root contracts:
 | `PatchGranularity` | Entry, span or section correction granularity |
 | `VerificationError` | Structured deterministic verification error |
 | `VerificationErrorType` | Stable error category enum |
+| `ReturnAnnotationKind` and `classify_return_annotation` | Conservative classification of Python return annotations |
+
+The optional `VerificationRequest.module_record` field accepts the enclosing
+Extract `ModuleRecord` for import-aware annotation resolution. Consumers can pass
+these module facts alongside the symbol record; without that context, names that
+depend on imports remain unresolved.
 
 The implementation also exposes the current adapter's verifier functions and
 document models from their submodules. Their signatures and model fields are
