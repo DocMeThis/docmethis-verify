@@ -2,6 +2,7 @@
 
 """Public API for deterministic docstring verification."""
 
+from docmethis_verify.exception_scope import documentable_exceptions
 from docmethis_verify.models import (
     FormatWarning,
     FormatWarningSpan,
@@ -23,4 +24,5 @@ __all__ = [
     "VerificationRequest",
     "VerificationResponse",
     "classify_return_annotation",
+    "documentable_exceptions",
 ]

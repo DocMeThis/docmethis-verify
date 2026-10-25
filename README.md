@@ -149,8 +149,8 @@ For the current Python adapter, the main mappings are:
 | `DMT-3001` | `TDV-PY-3001` | Return value documentation is missing |
 | `DMT-3010` | `TDV-PY-3010` | Return type is missing |
 | `DMT-3013` | `TDV-PY-3013` | Value-return annotation with a proven absence of normal return |
-| `DMT-4001` | `TDV-PY-4001` | Observed exception is missing from `Raises` |
-| `DMT-4002` | `TDV-PY-4002` | Documented exception is not observed |
+| `DMT-4001` | `TDV-PY-4001` | Documentable exception is missing from `Raises` |
+| `DMT-4002` | `TDV-PY-4002` | Documented exception is outside documentary scope |
 | `DMT-7200` | `TDV-PY-7200` | Forbidden or boilerplate vocabulary |
 
 The NumPy format adapter maps its `FormatWarning.kind` values to native DMT
@@ -177,7 +177,7 @@ has a canonical TDV-PY mapping described in the next section.
 - Missing return types (`DMT-3010`).
 - Return-annotation classification supporting the normal-return contract diagnostic (`DMT-3013`).
 - Exceptions absent from `Raises` (`DMT-4001`).
-- Documented exceptions not observed by the facts adapter (`DMT-4002`).
+- Documented exceptions absent from the configured documentary scope (`DMT-4002`).
 - Forbidden vocabulary in supported sections (`DMT-7200`).
 
 The Python format adapter, `validate_docstring_format`, returns typed
@@ -215,11 +215,24 @@ The current Python package exposes these stable root contracts:
 | `VerificationError` | Structured deterministic verification error |
 | `VerificationErrorType` | Stable error category enum |
 | `ReturnAnnotationKind` and `classify_return_annotation` | Conservative classification of Python return annotations |
+| `documentable_exceptions` | Shared selection of escaping exception facts within documentary depth |
 
 The optional `VerificationRequest.module_record` field accepts the enclosing
 Extract `ModuleRecord` for import-aware annotation resolution. Consumers can pass
 these module facts alongside the symbol record; without that context, names that
 depend on imports remain unresolved.
+
+`VerificationRequest.exception_documentation_depth` is a strict non-negative
+integer, defaulting to 1: local raises and exceptions from direct callees. Pass 0
+to restrict documentation to local raises. Supply complete AST facts analyzed to
+at least the requested distance; project configuration validates that the
+documentary depth does not exceed the analysis depth.
+
+Both DMT-4001 and DMT-4002 use `documentable_exceptions(record, depth=...)`.
+Facts outside scope remain present in the original record. A documented exception
+known to the AST but outside documentary scope produces DMT-4002 with an explicit
+scope message; removing it does not produce a contradictory DMT-4001. Conditions
+and messages from deeper facts are excluded from documentary generation as well.
 
 The implementation also exposes the current adapter's verifier functions and
 document models from their submodules. Their signatures and model fields are

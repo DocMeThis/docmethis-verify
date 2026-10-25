@@ -11,7 +11,7 @@ from pydantic.dataclasses import dataclass
 from docmethis_verify.docstring.models import GeneratedDocstring
 from docmethis_verify.models.enums import PatchGranularity, VerificationErrorType
 from docmethis_verify.models.format_warning import FormatWarning, FormatWarningSpan
-from docmethis_verify.validation import NonEmptyStr, OptionalNonEmptyStr, StrictTupleOfNonEmptyStr
+from docmethis_verify.validation import NonEmptyStr, NonNegativeStrictInt, OptionalNonEmptyStr, StrictTupleOfNonEmptyStr
 
 __all__ = ["FormatWarning", "FormatWarningSpan", "VerificationError", "VerificationRequest", "VerificationResponse"]
 
@@ -147,6 +147,8 @@ class VerificationRequest:
         Terms forbidden in the docstring.
     module_record : ModuleRecord | None
         Enclosing module facts used to resolve return annotation imports. Unresolved names remain unknown when omitted.
+    exception_documentation_depth : NonNegativeStrictInt
+        Maximum documented exception call distance; one includes local raises and direct callees.
 
     """
 
@@ -154,6 +156,7 @@ class VerificationRequest:
     function_record: FunctionRecord | ClassRecord | ModuleRecord
     forbidden_terms: StrictTupleOfNonEmptyStr = ()
     module_record: ModuleRecord | None = None
+    exception_documentation_depth: NonNegativeStrictInt = 1
 
 
 @dataclass(kw_only=True, slots=True, frozen=True, config=_CONFIG_DICT)

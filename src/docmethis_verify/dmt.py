@@ -643,7 +643,7 @@ REGISTRY: tuple[CodeDMT, ...] = (
     ),
     CodeDMT(
         DMT_4002,
-        "Documented exception has no detected raise source.",
+        "Documented exception is absent from the configured documentary exception scope.",
         family=2,
         severity="error",
         confidence="medium",

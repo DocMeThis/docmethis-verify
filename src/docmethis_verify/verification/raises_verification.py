@@ -5,6 +5,7 @@
 from docmethis_extract_python.api import ExceptionRecord, FunctionRecord, Provenance, exception_escapes
 
 from docmethis_verify.dmt import DMT_4001, DMT_4002
+from docmethis_verify.exception_scope import documentable_exceptions
 from docmethis_verify.models.contracts import VerificationError, VerificationRequest
 from docmethis_verify.models.enums import PatchGranularity, VerificationErrorType
 
@@ -52,11 +53,15 @@ def verify_raises_ghosts(request: VerificationRequest) -> list[VerificationError
 
     m1_names = {
         _simple_exception_name(exception.exception_type)
-        for exception in request.function_record.exceptions
-        if exception_escapes(request.function_record, exception)
+        for exception in documentable_exceptions(request.function_record, depth=request.exception_documentation_depth)
     }
     seen_ghost_names: set[str] = set()
     errors: list[VerificationError] = []
+    observed_names = {
+        _simple_exception_name(exception.exception_type)
+        for exception in request.function_record.exceptions
+        if exception_escapes(request.function_record, exception)
+    }
     for documented_raise in request.generated_docstring.raises:
         normalized_name = _simple_exception_name(documented_raise.exception)
         if normalized_name in m1_names or normalized_name in seen_ghost_names:
@@ -68,7 +73,12 @@ def verify_raises_ghosts(request: VerificationRequest) -> list[VerificationError
                 error_type=VerificationErrorType.RAISES_GHOST,
                 section="Raises",
                 granularity=PatchGranularity.ENTRY,
-                detail=f"exception '{documented_raise.exception}' is documented but not observed",
+                detail=(
+                    f"exception '{documented_raise.exception}' is outside the configured documentation depth "
+                    f"({request.exception_documentation_depth})"
+                    if normalized_name in observed_names
+                    else f"exception '{documented_raise.exception}' is documented but not observed"
+                ),
                 observed=documented_raise.exception,
                 dmt_code=DMT_4002,
             )
@@ -135,9 +145,7 @@ def verify_raises_missing(request: VerificationRequest) -> list[VerificationErro
         return []
 
     m2_names = {_simple_exception_name(documented_raise.exception) for documented_raise in request.generated_docstring.raises}
-    exposed_exceptions = [
-        exception for exception in request.function_record.exceptions if exception_escapes(request.function_record, exception)
-    ]
+    exposed_exceptions = list(documentable_exceptions(request.function_record, depth=request.exception_documentation_depth))
     missing_exceptions = _missing_exceptions_by_name(exposed_exceptions, m2_names)
 
     return [

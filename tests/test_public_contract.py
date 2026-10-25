@@ -34,6 +34,7 @@ EXPECTED_ROOT_EXPORTS = {
     "VerificationErrorType",
     "ReturnAnnotationKind",
     "classify_return_annotation",
+    "documentable_exceptions",
 }
 
 

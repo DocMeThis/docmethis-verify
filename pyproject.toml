@@ -1,13 +1,13 @@
 [project]
 name = "docmethis-verify"
-version = "0.1.0"
+version = "0.1.1"
 description = "Deterministic Python docstring verification for DocMeThis."
 readme = "README.md"
 requires-python = ">=3.12"
 license = "LicenseRef-DocMeThis-Source-Access"
 license-files = ["LICENSE"]
 dependencies = [
-    "docmethis-extract-python==0.1.1",
+    "docmethis-extract-python>=0.1.1",
     "pydantic>=2.11.0,<3.0.0",
 ]
 
@@ -73,6 +73,7 @@ patterns = [
     "src/docmethis_verify/validation.py",
     "src/docmethis_verify/dmt.py",
     "src/docmethis_verify/return_annotations.py",
+    "src/docmethis_verify/exception_scope.py",
     "src/docmethis_verify/models/",
     "src/docmethis_verify/docstring/",
     "src/docmethis_verify/verification/",
@@ -86,6 +87,7 @@ patterns = [
     "tests/verification/test_format_validator.py",
     "tests/verification/test_format_warning_spans.py",
     "tests/verification/test_raises_verification.py",
+    "tests/verification/test_exception_scope.py",
     "tests/verification/test_structural.py",
     "tests/verification/test_types_verification.py",
     "tests/verification/test_vocabulary_verification.py",
