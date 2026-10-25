@@ -14,7 +14,19 @@ from docmethis_verify.verification.verifier import verify
 
 @pytest.mark.parametrize("depth", [0, 1, 2, 4])
 def test_verification_uses_the_same_scope_for_missing_and_ghost_raises(tmp_path: Path, depth: int) -> None:
-    """Known deeper facts are excluded by policy, never requested again after removal."""
+    """Known deeper facts are excluded by policy, never requested again after removal.
+
+    Parameters
+    ----------
+    tmp_path : Path
+        A positional-or-keyword parameter annotated as Path with no default. Its value is used as a directory containing a
+        module.py file written during the test, and is also passed to analyze_project.
+    depth : int
+        Controls how many levels of exception facts are considered: at a depth of 2 or more, a documented ValueError is reported
+        as deeper than allowed for undocumented output, an undocumented ValueError is reported as missing, and one documentable
+        exception is returned; below 2, a documented ValueError is reported as outside the configured documentation depth, no
+        missing-exception error is raised, and no exceptions are documentable.
+    """
     (tmp_path / "module.py").write_text(
         "def a():\n    b()\ndef b():\n    c()\ndef c():\n    raise ValueError('bad')\n",
         encoding="utf-8",

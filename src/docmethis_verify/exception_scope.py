@@ -26,11 +26,8 @@ def documentable_exceptions(function_record: FunctionRecord, *, depth: int = 1) 
 
     Raises
     ------
-    TypeError
-        If the supplied record is not a function record.
     ValueError
         If depth is not a non-negative strict integer.
-
     """
     dynamic_type_check(value=function_record, expected_type=FunctionRecord, field="function_record")
     if type(depth) is not int or depth < 0:
